@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>CMD Blog</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      padding: 20px;
+      margin: 0;
+    }
+    /* Sabit başlık alanı */
+    #cmd-header {
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+    }
+    /* Komut sonuçlarının gösterileceği alan */
+    #cmd-result {
+      white-space: pre-wrap;
+      margin-bottom: 10px;
+    }
+    #cmd-input {
+      background: none;
+      border: none;
+      color: #0f0;
+      width: 100%;
+      font-family: monospace;
+      font-size: 1em;
+    }
+    #cmd-input:focus {
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sabit başlık: "Charm" ve "Y//N?" arasında 2 satır boşluk -->
+  <div id="cmd-header">
+Charm<br><br>Y//N?
+  </div>
+  <!-- Komut sonuçları için alan -->
+  <div id="cmd-result"></div>
+  <input type="text" id="cmd-input" autofocus placeholder="Komut girin...">
+
+  <script>
+    // Mod durumları: "normal", "addingTitle", "addingContent"
+    let mode = "normal";
+    let newTitle = "";
+
+    // Rastgele tarih üretme (2020-2025 arası)
+    function getRandomDate() {
+      const start = new Date(2020, 0, 1);
+      const end = new Date(2025, 11, 31);
+      const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());
+      return new Date(randomTime).toLocaleDateString();
+    }
+
+    // Blog yazılarını localStorage'dan yükleme
+    function loadBlogPosts() {
+      const posts = localStorage.getItem("blogPosts");
+      if (posts) {
+        return JSON.parse(posts);
+      } else {
+        // Varsayılan yazılar (rastgele tarihlerle)
+        return [
+          { title: "alparslan", content: "Bu, Alparslan başlıklı deneme yazısıdır. CMD blog deneyimine hoş geldiniz!", date: getRandomDate() },
+          { title: "ilk yazı", content: "Blogun ilk yazısı burada. Örnek içerik metni.", date: getRandomDate() },
+          { title: "teknoloji", content: "Teknoloji dünyasından son gelişmeler ve yorumlar.", date: getRandomDate() },
+          { title: "sağlık", content: "Sağlık konularında ipuçları ve güncel bilgiler.", date: getRandomDate() },
+          { title: "spor", content: "Spor haberleri, analizler ve yorumlar.", date: getRandomDate() },
+          { title: "eğlence", content: "Film, müzik ve kültür dünyasından haberler.", date: getRandomDate() },
+          { title: "seyahat", content: "Dünya genelinde seyahat önerileri ve deneyimler.", date: getRandomDate() },
+          { title: "edebiyat", content: "Kitap önerileri, yazar incelemeleri ve edebiyat dünyası.", date: getRandomDate() },
+          { title: "müzik", content: "En yeni albüm yorumları ve müzik haberleri.", date: getRandomDate() }
+        ];
+      }
+    }
+
+    function saveBlogPosts(posts) {
+      localStorage.setItem("blogPosts", JSON.stringify(posts));
+    }
+
+    let blogPosts = loadBlogPosts();
+
+    const resultDiv = document.getElementById("cmd-result");
+    const inputField = document.getElementById("cmd-input");
+
+    // Sonuç alanını sadece tek komutun çıktısı ile güncelleyen fonksiyon
+    function setResult(text) {
+      resultDiv.innerHTML = text;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Blog başlıklarını ve tarihlerini listeleme (Y komutu)
+    function listBlogs() {
+      let result = "Blog Yazıları:\n";
+      blogPosts.forEach(post => {
+        result += `- ${post.title} (${post.date})\n`;
+      });
+      setResult(result);
+    }
+
+    // Belirli bir blog yazısını gösterme (blog başlığı girildiğinde)
+    function showBlog(title) {
+      const post = blogPosts.find(p => p.title.toLowerCase() === title.toLowerCase());
+      if (post) {
+        setResult(`Yazı: ${post.title}\nTarih: ${post.date}\n${post.content}`);
+      } else {
+        setResult("Yazı bulunamadı.");
+      }
+    }
+
+    inputField.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        const input = inputField.value.trim();
+        inputField.value = "";
+
+        if (mode === "normal") {
+          if (input === "Y") {
+            listBlogs();
+          } else if (input === "N") {
+            // Şiir kısmı: Kan kırmızısı renk (#8B0000)
+            setResult(`<span style="color: #8B0000">Less morose and more present
+Dwell on my gifts for a second
+A moment one solar flare would consume, so why not
+Spin this flammable paper on the film that's my life
+High flights, inhale the vapor, exhale once and think twice
+Eat some shrooms, maybe have a good cry, about you
+See some colors, light hang glide off the moon</span>`);
+          } else if (input.toLowerCase() === "ekle") {
+            mode = "addingTitle";
+            setResult("Yeni yazı ekleme moduna geçildi.\nLütfen yazı başlığını girin:");
+          } else {
+            // Girilen komut blog başlığı olarak kabul ediliyor
+            showBlog(input);
+          }
+        } else if (mode === "addingTitle") {
+          newTitle = input;
+          mode = "addingContent";
+          setResult(`Başlık alındı: ${newTitle}\nLütfen yazının içeriğini girin:`);
+        } else if (mode === "addingContent") {
+          const newContent = input;
+          const newPost = {
+            title: newTitle,
+            content: newContent,
+            date: new Date().toLocaleDateString()
+          };
+          blogPosts.push(newPost);
+          saveBlogPosts(blogPosts);
+          setResult(`Yeni yazı eklendi: ${newTitle}`);
+          mode = "normal";
+        }
+      }
+    });
+  </script>
+</body>
+</html>
